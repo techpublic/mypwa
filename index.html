@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PGPhone">
+  <meta name="description" content="Secure offline PGP cryptography — fully client-side">
+  <meta name="theme-color" content="#080810">
+  <title>PGPhone</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Header ── -->
+  <header class="app-header">
+    <div class="header-logo">
+      <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="26" height="26" rx="6" fill="#0f0f1c"/>
+        <path d="M9 12V9.5a4 4 0 0 1 8 0V12" stroke="#4fffb0" stroke-width="1.8" stroke-linecap="round"/>
+        <rect x="6.5" y="12" width="13" height="9" rx="2.5" fill="#4fffb0"/>
+        <circle cx="13" cy="16.5" r="1.5" fill="#080810"/>
+        <rect x="12.25" y="17.5" width="1.5" height="2" rx="0.75" fill="#080810"/>
+      </svg>
+      <span class="header-logo-text">PGPhone</span>
+    </div>
+    <div class="header-right">
+      <button class="info-icon-btn" id="btnShowInfo" aria-label="Legal information & privacy policy">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M8 7v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="8" cy="4.5" r="0.9" fill="currentColor"/>
+        </svg>
+      </button>
+      <div class="header-status">OFFLINE</div>
+    </div>
+  </header>
+
+  <!-- ── Tab Nav — 3 tabs only ── -->
+  <nav class="tab-nav" role="tablist" aria-label="Main navigation">
+    <button class="tab-btn active" data-tab="keys"    role="tab" aria-selected="true">Keys</button>
+    <button class="tab-btn"        data-tab="encrypt" role="tab" aria-selected="false">Encrypt</button>
+    <button class="tab-btn"        data-tab="decrypt" role="tab" aria-selected="false">Decrypt</button>
+  </nav>
+
+  <!-- ── Tab Content ── -->
+  <main class="tab-content">
+
+    <!-- ══════════════════════════════════
+         KEYS TAB — My Keys + Contacts
+         ══════════════════════════════════ -->
+    <div id="tab-keys" class="tab-panel active" role="tabpanel">
+      <div class="action-bar">
+        <button class="btn btn-primary" id="btnGenerate">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Generate
+        </button>
+        <button class="btn btn-ghost" id="btnImport">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Import
+        </button>
+        <span id="keyCount" class="badge badge-type" style="display:none;align-self:center;margin-left:4px"></span>
+      </div>
+
+      <div id="keysList"></div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         ENCRYPT TAB
+         Always signs — uses your private key.
+         Recipients = Contacts only.
+         ══════════════════════════════════ -->
+    <div id="tab-encrypt" class="tab-panel" role="tabpanel">
+
+      <!-- Message first -->
+      <div class="form-group">
+        <label class="form-label" for="encryptInput">Message</label>
+        <textarea class="form-input form-textarea form-textarea-large" id="encryptInput"
+          placeholder="Type your message here…" spellcheck="false"></textarea>
+      </div>
+
+      <!-- Recipients (contacts only) -->
+      <div class="form-group">
+        <label class="form-label">
+          <span class="label-icon">👤</span> Encrypt for (Contacts)
+        </label>
+        <div id="encryptRecipients" class="key-checkbox-list"></div>
+      </div>
+
+      <!-- Signing key (My Key) -->
+      <div class="form-group">
+        <label class="form-label" for="encryptSignKey">
+          <span class="label-icon">🔐</span> Sign as (My Key)
+        </label>
+        <select class="form-select" id="encryptSignKey"></select>
+      </div>
+
+      <!-- Passphrase -->
+      <div class="form-group">
+        <label class="form-label" for="encryptPassphrase">Passphrase</label>
+        <div class="input-group">
+          <input type="password" class="form-input" id="encryptPassphrase"
+            placeholder="Your key's passphrase" autocomplete="off" autocorrect="off">
+          <button class="input-reveal" data-target="encryptPassphrase" type="button" aria-label="Toggle visibility">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="9" rx="7" ry="5" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btnEncrypt">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="6" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 6V4a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Encrypt &amp; Sign
+      </button>
+
+      <div class="output-area" id="encryptOutput">
+        <div class="output-header">
+          <span class="output-label">Encrypted message</span>
+          <button class="copy-btn" id="btnCopyEncrypt">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M2 8V2.5A.5.5 0 0 1 2.5 2H8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Copy
+          </button>
+        </div>
+        <div class="output-box success-glow" id="encryptResult"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         DECRYPT TAB
+         Always verifies — 4 distinct sig states.
+         ══════════════════════════════════ -->
+    <div id="tab-decrypt" class="tab-panel" role="tabpanel">
+
+      <div class="form-group">
+        <label class="form-label" for="decryptInput">Encrypted message (PGP armored)</label>
+        <textarea class="form-input form-textarea form-textarea-large" id="decryptInput"
+          placeholder="-----BEGIN PGP MESSAGE-----&#10;…&#10;-----END PGP MESSAGE-----"
+          spellcheck="false" autocorrect="off" autocapitalize="off"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="decryptKey">
+          <span class="label-icon">🔐</span> Decrypt with (My Key)
+        </label>
+        <select class="form-select" id="decryptKey"></select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="decryptPassphrase">Passphrase</label>
+        <div class="input-group">
+          <input type="password" class="form-input" id="decryptPassphrase"
+            placeholder="Your key's passphrase" autocomplete="off" autocorrect="off">
+          <button class="input-reveal" data-target="decryptPassphrase" type="button" aria-label="Toggle visibility">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><ellipse cx="9" cy="9" rx="7" ry="5" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btnDecrypt">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="6" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2 1.5"/></svg>
+        Decrypt &amp; Verify
+      </button>
+
+      <!-- Signature status banner — shown after decrypt -->
+      <div id="sigStatusBanner" class="sig-status-banner" style="display:none" role="status"></div>
+
+      <!-- Plaintext output -->
+      <div class="output-area" id="decryptOutput">
+        <div class="output-header">
+          <span class="output-label">Decrypted message</span>
+          <button class="copy-btn" id="btnCopyDecrypt">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M2 8V2.5A.5.5 0 0 1 2.5 2H8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Copy
+          </button>
+        </div>
+        <div class="output-box" id="decryptResult"></div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /#app -->
+
+<!-- ── Modal ── -->
+<div id="modalOverlay" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal" id="modalContent">
+    <div class="modal-drag"></div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ── Loading overlay ── -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-ring"></div>
+  <div class="loading-text" id="loadingText">Working…</div>
+</div>
+
+<!-- ── Toast container ── -->
+<div id="toast-container" aria-live="polite"></div>
+
+<!-- ── Legal / Info Bottom Sheet ── -->
+<div id="legalOverlay" class="legal-overlay" role="dialog" aria-modal="true" aria-label="Legal information">
+  <div class="legal-sheet" id="legalSheet">
+    <div class="legal-drag-handle"></div>
+    <div class="legal-scroll-area" id="legalScrollArea">
+      <div class="legal-logo">
+        <svg viewBox="0 0 26 26" fill="none" width="32" height="32"><rect width="26" height="26" rx="6" fill="#0f0f0f"/><path d="M9 12V9.5a4 4 0 0 1 8 0V12" stroke="#4fffb0" stroke-width="1.8" stroke-linecap="round"/><rect x="6.5" y="12" width="13" height="9" rx="2.5" fill="#4fffb0"/><circle cx="13" cy="16.5" r="1.5" fill="#080810"/><rect x="12.25" y="17.5" width="1.5" height="2" rx="0.75" fill="#080810"/></svg>
+        <span>PGPhone</span>
+      </div>
+
+      <h1 class="legal-title">Terms, Disclaimers &amp; Privacy Policy</h1>
+      <p class="legal-version">v0.7.4 — Last updated: 2025</p>
+
+      <section class="legal-section">
+        <h2>1. Open Source — "As Is" Software</h2>
+        <p>PGPhone is free, open-source software provided <strong>"as is"</strong>, without warranty of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
+        <p>The author(s) and contributors accept <strong>no responsibility or liability</strong> for any direct, indirect, incidental, special, exemplary, or consequential damages arising from the use or inability to use this software, even if advised of the possibility of such damages.</p>
+        <p>Use of this application is entirely at your own risk. You are solely responsible for how you use it and for the security of your keys and passphrases.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>2. No Warranty — Cryptographic Software</h2>
+        <p>Cryptographic software is complex. Although PGPhone uses established, audited libraries (OpenPGP.js), <strong>no software is bug-free</strong>. The author makes no guarantees about the correctness, security, or suitability of this application for any particular purpose, including secure communications.</p>
+        <p>You are responsible for verifying the integrity of key fingerprints, keeping passphrases safe, and maintaining backups of your private keys. <strong>Lost passphrases and unbackedup private keys cannot be recovered.</strong></p>
+      </section>
+
+      <section class="legal-section">
+        <h2>3. Privacy Policy — No Data Collection</h2>
+        <p>PGPhone is designed with a <strong>privacy-first, offline-first</strong> architecture:</p>
+        <ul class="legal-list">
+          <li>All cryptographic operations run <strong>entirely on your device</strong>, in your browser, with no server involvement.</li>
+          <li>Your keys, messages, and passphrases <strong>never leave your device</strong>. They are stored only in your browser's local IndexedDB.</li>
+          <li>The application makes <strong>zero network requests</strong> after installation. The Service Worker blocks all external connections.</li>
+          <li>The author <strong>does not collect, process, or store</strong> any personal data, usage data, analytics, or telemetry of any kind.</li>
+        </ul>
+        <p><strong>If you install PGPhone from a public website:</strong> the web server that hosts the files may log your IP address and standard HTTP connection metadata (timestamp, browser user-agent, bytes transferred) as part of normal server operation. This is governed by the privacy policy of whoever hosts that website — not by PGPhone. The application code itself never transmits this or any other data.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>4. Open Source License</h2>
+        <p>PGPhone source code is released under the <strong>MIT License</strong>. You are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, subject to the following condition: the above copyright notice and this permission notice shall be included in all copies or substantial portions of the software.</p>
+        <p>Third-party libraries bundled with this application (notably OpenPGP.js) are subject to their own licenses (LGPL-3.0 for OpenPGP.js). Their licenses are available in their respective source repositories.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>5. Jurisdiction &amp; Compliance</h2>
+        <p>Cryptographic software may be subject to export control laws in certain jurisdictions. You are responsible for ensuring your use of this software complies with all applicable local, national, and international laws and regulations, including but not limited to export control and data protection regulations (e.g. GDPR, CCPA).</p>
+        <p>The author does not provide legal advice. If you are uncertain about compliance obligations, consult a qualified legal professional.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>6. No Affiliation</h2>
+        <p>PGPhone is an independent project. It is not affiliated with, endorsed by, or sponsored by the OpenPGP Working Group, ProtonMail, Tutanota, or any other organisation.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>7. Changes to This Policy</h2>
+        <p>This document may be updated with new versions of the application. Continued use after an update constitutes acceptance of the revised terms.</p>
+      </section>
+
+      <!-- Acceptance checkbox — only shown on first run -->
+      <div class="legal-accept-block" id="legalAcceptBlock">
+        <label class="legal-checkbox-row" id="legalCheckLabel">
+          <input type="checkbox" id="legalCheckbox">
+          <span class="legal-checkbox-custom"></span>
+          <span class="legal-checkbox-text">I have read and I agree to the Terms, Disclaimers, and Privacy Policy above.</span>
+        </label>
+        <button class="btn btn-primary btn-full" id="btnLegalAccept" disabled>Continue to PGPhone</button>
+      </div>
+
+    </div><!-- /legal-scroll-area -->
+  </div><!-- /legal-sheet -->
+</div><!-- /legalOverlay -->
+
+<!-- openpgp must load before app.js -->
+<script src="openpgp.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

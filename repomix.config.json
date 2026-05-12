@@ -1,0 +1,26 @@
+{
+  "output": {
+    "filePath": "repomix-output.xml",
+    "style": "xml",
+    "parsableStyle": true,
+    "removeComments": true,
+    "removeEmptyLines": true,
+    "showLineNumbers": false,
+    "copyToClipboard": true,
+    "compress": false,
+    "topFilesLength": 10
+  },
+  "include": ["**/*"],
+  "ignore": {
+    "useDefaultPatterns": true,
+    "useGitignore": true,
+    "customPatterns": [
+      "**/.git/**",
+    "**/repomix-output.xml/**",
+    "**/repomix.config.json/**"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}
